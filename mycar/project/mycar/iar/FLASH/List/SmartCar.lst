@@ -1,0 +1,228 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V7.40.2.8542/W32 for ARM        13/Apr/2017  22:11:35
+# Copyright 1999-2015 IAR Systems AB.
+#
+#    Cpu mode     =  thumb
+#    Endian       =  little
+#    Source file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SmartCar.c
+#    Command line =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SmartCar.c
+#        -D LPLD_K60 -D USE_K60DZ10 -lCN
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -lB
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -o
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\
+#        --no_cse --no_unroll --no_inline --no_code_motion --no_tbaa
+#        --no_clustering --no_scheduling --debug --endian=little
+#        --cpu=Cortex-M4 -e --fpu=None --dlib_config "E:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\INC\c\DLib_Config_Normal.h" -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\app\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\CPU\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\HW\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\DEV\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\FUNC\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Ports\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Source\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\option\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\driver\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\descriptor\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\class\
+#        -Ol -I "E:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\CMSIS\Include\" -D ARM_MATH_CM4
+#    List file    =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\SmartCar.lst
+#    Object file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\SmartCar.o
+#
+###############################################################################
+
+C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SmartCar.c
+      1          #include "include.h"
+      2          uint8 flag_100ms,flag_record;  //控制主循环的执行
+      3          void main (void)
+      4          {
+      5            DisableInterrupts;  //关闭中断 
+      6            All_Init();   
+      7            EnableInterrupts; //打开中断
+      8           
+      9            while(1)
+     10            {
+     11              if(SendPara)
+     12              {
+     13                Send_Para();
+     14                SendPara=0;
+     15              }
+     16              if(!SaveData&&Uart_Send) //保存数据时不能发串口
+     17              {
+     18                if(SendCCD)
+     19                {
+     20                 Send_CCD();
+     21                 SendCCD=0;
+     22                }
+     23                 Send_Variable();     
+     24              } 
+     25              if(SendSD)
+     26              {
+     27                SendSD=0;
+     28                Send_SD();
+     29              } 
+     30              if(flag_100ms)        //只有停止的时候才执行
+     31              {
+     32                 Read_Switch();
+     33                 if(OLED_Refresh)
+     34                 { 
+     35                  Check_BottonPress();        //防止误触发
+     36                  if(Stop==true||SaveData==false)  OLED_Draw_UI();
+     37                 }
+     38                 else Check_StartPress();     //关闭液晶显示，检查启动按键是否按下
+     39                 flag_100ms=0;
+     40              }
+     41              if(flag_record&&SaveData&&SD_Operation)   //如果SD允许操作并且打开了SD卡记录功能，那么
+     42             {
+     43                if(Stop!=true) //如果小车正在运行，则记录
+     44               {
+     45                if (Starting) Block_Index=1;
+     46                else Record();                     //存储数据  
+     47               }
+     48               else if(CarStopedJustNow) //小车刚停止
+     49              {
+     50                  CarStopedJustNow=false; 
+     51                  Write_Information();
+     52              }
+     53                flag_record=false;
+     54             }
+     55            } 
+     56          }
+     57          void pit0_isr(void)
+     58          {
+     59            static uint8  part=0; 
+     60            static uint8  cnt100ms;
+     61            part++;
+     62            cnt100ms++;
+     63            SpeedCount++;    
+     64            //循环计数控制
+     65            
+     66             switch(part) 
+     67           {
+     68              case 1: 
+     69                     //直立控制
+     70                      if(CCD_Exposure_Time==1)   CCD_Exposure();  //曝光        
+     71                      Get_Attitude();       
+     72                      Angle_Calculate();
+     73                      Angle_Control();
+     74                      //速度控制  
+     75                      Get_Speed();   //5ms采集一次速度
+     76                      SpeedCount++;  
+     77                      if(SpeedCount>= Speed_Filter_Times) 
+     78                     {                 
+     79                         Speed_Control();
+     80                         SpeedCount=0;
+     81                     } 
+     82                     Speed_Control_Output(); 
+     83                      break; 
+     84              case 2: //CCD采集 
+     85                  
+     86                      CCD_Capture(); //采集CCD                              
+     87                      break;
+     88              case 3: 
+     89                       //方向控制
+     90                      if(CCD_Exposure_Time==4)    CCD_Exposure(); 
+     91                      CCD_Normalization();    
+     92                      break;  
+     93              case 4: 
+     94                      if(CCD_Exposure_Time==3)   CCD_Exposure(); 
+     95                      RoadType_Distinguish();  
+     96                     if((RunTime<0.1)&&(Stop==0))  //防止起步的时候乱飘
+     97                    {
+     98                      Rightlastfind=0;
+     99                      Leftlastfind=0;
+    100                      Middle_Err=0;
+    101                    }
+    102                      Direction_Control(); 
+    103                      DirectionCount=0; 
+    104                      flag_record=1;                        //开记录标志位
+    105                      SendCCD=1; 
+    106                       break;
+    107              case 5:
+    108                       part=0;  
+    109                       if(CCD_Exposure_Time==2)   CCD_Exposure(); 
+    110                       break;
+    111              default:
+    112                      break;   
+    113           }
+    114           
+    115            DirectionCount++;
+    116            Direction_Control_Output();
+    117            Moto_Out();          //每毫秒都输出控制
+    118            
+    119           ///////////////////////////////////////////////LED状态指示 
+    120            if(cnt100ms==100)
+    121           {
+    122              if(Stop)
+    123              {
+    124                  
+    125                    LED2_TURN;
+    126                    LED1_OFF;
+    127                    LED0_OFF;
+    128              }
+    129              else
+    130              {
+    131               if(Starting)
+    132               {
+    133               LED0_TURN;
+    134               LED1_OFF;
+    135               LED2_OFF;
+    136               }
+    137               else
+    138               {
+    139               
+    140               LED0_OFF;
+    141               LED1_TURN;
+    142               LED2_OFF;
+    143               }
+    144              }
+    145              cnt100ms=0;
+    146              flag_100ms=1;
+    147           }
+    148           ////////////////////////////////////////////启动
+    149           if(Starting) 
+    150           {  
+    151                Start_Cnt--;
+    152                if(Start_Cnt==0)
+    153                {
+    154                 Starting=false;
+    155                }
+    156             
+    157            } 
+    158           /////////////////////////////////////////////统计时间及速度
+    159           if(Stop==false&&Starting==false)
+    160           {
+    161            RunTime=RunTime+0.001;
+    162            AverageSpeed=Distance/RunTime;//求得运行时间
+    163           }
+    164          }
+
+Errors: 18
+Warnings: 2

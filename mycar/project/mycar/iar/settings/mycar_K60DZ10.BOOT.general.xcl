@@ -1,0 +1,15 @@
+"E:\IAR\anzhuang\arm\bin\armproc.dll" 
+
+"E:\IAR\anzhuang\arm\bin\armjlink.dll" 
+
+"F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\BOOT\Exe\mycar_K60DZ10.out" 
+
+--plugin "E:\IAR\anzhuang\arm\bin\armbat.dll" 
+
+--device_macro "E:\IAR\anzhuang\arm\config\debugger\Freescale\Kxx.dmac" 
+
+--flash_loader "E:\IAR\anzhuang\arm\config\flashloader\Freescale\FlashK60Dxxx128K.board" 
+
+
+
+

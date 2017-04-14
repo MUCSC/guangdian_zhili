@@ -1,0 +1,793 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V7.40.2.8542/W32 for ARM        19/Jul/2016  22:49:19
+# Copyright 1999-2015 IAR Systems AB.
+#
+#    Cpu mode     =  thumb
+#    Endian       =  little
+#    Source file  =  
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\app\mycar.c
+#    Command line =  
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\app\mycar.c
+#        -D LPLD_K60 -D USE_K60DZ10 -lCN
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\FLASH\List\
+#        -lB
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\FLASH\List\
+#        -o
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\FLASH\Obj\
+#        --no_cse --no_unroll --no_inline --no_code_motion --no_tbaa
+#        --no_clustering --no_scheduling --debug --endian=little
+#        --cpu=Cortex-M4 -e --fpu=None --dlib_config
+#        E:\IAR\anzhuang\arm\INC\c\DLib_Config_Normal.h -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\app\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\CPU\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\common\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\LPLD\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\LPLD\HW\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\LPLD\DEV\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\LPLD\FUNC\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Ports\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Source\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\FatFs\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\FatFs\option\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\USB\common\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\USB\driver\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\USB\descriptor\
+#        -I
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\..\..\..\lib\USB\class\
+#        -Ol -I E:\IAR\anzhuang\arm\CMSIS\Include\ -D ARM_MATH_CM4
+#    List file    =  
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\FLASH\List\mycar.lst
+#    Object file  =  
+#        F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\iar\FLASH\Obj\mycar.o
+#
+###############################################################################
+
+F:\work\competition\freescale\P_freestyle\MINE\16.5.16\mycar\project\mycar\app\mycar.c
+      1          /**
+      2           * --------------基于"拉普兰德K60底层库V3"的工程（mycar）-----------------
+      3           * @file mycar.c
+      4           * @version 0.0
+      5           * @date 2013-9-29
+      6           * @brief 关于该工程的描述
+      7           *
+      8           * 版权所有:北京拉普兰德电子技术有限公司
+      9           * http://www.lpld.cn
+     10           * mail:support@lpld.cn
+     11           * 硬件平台:  LPLD K60 Card / LPLD K60 Nano
+     12           *
+     13           * 本工程基于"拉普兰德K60底层库V3"开发，
+     14           * 所有开源代码均在"lib"文件夹下，用户不必更改该目录下代码，
+     15           * 所有用户工程需保存在"project"文件夹下，以工程名定义文件夹名，
+     16           * 底层库使用方法见相关文档。 
+     17           *
+     18           */
+     19          #include "mycar.h"
+
+   \                                 In section .bss, align 4
+     20          float SERVO_PI ;
+   \                     SERVO_PI:
+   \   00000000                      DS8 4
+     21          #define ABS(x) ((x>0)?(x):(-x))
+     22          #define START 1
+     23          #define STOP 0
+     24          void pit_isr(void);
+     25          void Send_CCD(void);
+     26          void Send_Begin();
+     27          void Send_Variable();
+     28          
+     29          
+     30          /****
+     31          ***舵机方向控制
+     32          ****/
+     33          
+
+   \                                 In section .text, align 2, keep-with-next
+     34          void servo_angle_control( int angle) 
+     35          {
+   \                     servo_angle_control: (+1)
+   \   00000000   0xB580             PUSH     {R7,LR}
+     36            uint16 DutyRation = 0;
+   \   00000002   0x2200             MOVS     R2,#+0
+     37            DutyRation = (uint16)(660 - angle*6.0);
+   \   00000004   0x.... 0x....      BL       __aeabi_i2d
+   \   00000008   0x2200             MOVS     R2,#+0
+   \   0000000A   0x....             LDR.N    R3,??DataTable5  ;; 0x40180000
+   \   0000000C   0x.... 0x....      BL       __aeabi_dmul
+   \   00000010   0x0002             MOVS     R2,R0
+   \   00000012   0x000B             MOVS     R3,R1
+   \   00000014   0x2000             MOVS     R0,#+0
+   \   00000016   0x....             LDR.N    R1,??DataTable5_1  ;; 0x4084a000
+   \   00000018   0x.... 0x....      BL       __aeabi_dsub
+   \   0000001C   0x.... 0x....      BL       __aeabi_d2iz
+   \   00000020   0x0002             MOVS     R2,R0
+     38            if(DutyRation>=753) 
+   \   00000022   0xB292             UXTH     R2,R2            ;; ZeroExt  R2,R2,#+16,#+16
+   \   00000024   0xF5B2 0x7F3C      CMP      R2,#+752
+   \   00000028   0xDD01             BLE.N    ??servo_angle_control_0
+     39            {DutyRation=753;}
+   \   0000002A   0xF240 0x22F1      MOVW     R2,#+753
+     40            if(DutyRation<=580)
+   \                     ??servo_angle_control_0: (+1)
+   \   0000002E   0xB292             UXTH     R2,R2            ;; ZeroExt  R2,R2,#+16,#+16
+   \   00000030   0xF5B2 0x7F11      CMP      R2,#+580
+   \   00000034   0xDC01             BGT.N    ??servo_angle_control_1
+     41            { DutyRation=580;}
+   \   00000036   0xF44F 0x7211      MOV      R2,#+580
+     42              
+     43            LPLD_FTM_PWM_ChangeDuty(FTM2, FTM_Ch1, DutyRation);  //舵机角度控制//660
+   \                     ??servo_angle_control_1: (+1)
+   \   0000003A   0xB292             UXTH     R2,R2            ;; ZeroExt  R2,R2,#+16,#+16
+   \   0000003C   0x2101             MOVS     R1,#+1
+   \   0000003E   0x....             LDR.N    R0,??DataTable5_2  ;; 0x400b8000
+   \   00000040   0x.... 0x....      BL       LPLD_FTM_PWM_ChangeDuty
+     44          }
+   \   00000044   0xBD01             POP      {R0,PC}          ;; return
+     45          
+     46          
+
+   \                                 In section .bss, align 4
+     47          float qd_result=0;
+   \                     qd_result:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 2
+     48          uint16 lptmr_result = 0;
+   \                     lptmr_result:
+   \   00000000                      DS8 2
+
+   \                                 In section .bss, align 1
+     49          uint8 CCD_flag=0;
+   \                     CCD_flag:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 4
+     50          float reserve=0;
+   \                     reserve:
+   \   00000000                      DS8 4
+
+   \                                 In section .data, align 4
+     51          float *Variable[20]={&Delta_P,&Delta_D,&reserve,&Middle_Err,&Delt_error,&reserve,&CarSpeed,&qd1_result,&qd2_result,
+   \                     Variable:
+   \   00000000   0x........         DC32 Delta_P, Delta_D, reserve, Middle_Err, Delt_error, reserve
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \   00000018   0x........         DC32 CarSpeed, qd1_result, qd2_result, PID_Speed + 18H, PID_Turn + 18H
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \   0000002C   0x........         DC32 reserve, reserve, reserve, Distance, reserve, reserve, reserve
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \              0x........   
+   \   00000048   0x........         DC32 reserve, reserve
+   \              0x........   
+     52                                &PID_Speed.OUT,&PID_Turn.OUT,&reserve,&reserve,&reserve,&Distance,&reserve,&reserve,&reserve,&reserve,&reserve};
+     53          
+     54          
+
+   \                                 In section .text, align 4, keep-with-next
+     55          void drive_delay()
+     56          {
+     57            uint16 i, n,m;
+     58            for(m=0;m<6;m++)
+   \                     drive_delay: (+1)
+   \   00000000   0x2200             MOVS     R2,#+0
+   \   00000002   0xE000             B.N      ??drive_delay_0
+   \                     ??drive_delay_1: (+1)
+   \   00000004   0x1C52             ADDS     R2,R2,#+1
+   \                     ??drive_delay_0: (+1)
+   \   00000006   0xB292             UXTH     R2,R2            ;; ZeroExt  R2,R2,#+16,#+16
+   \   00000008   0x2A06             CMP      R2,#+6
+   \   0000000A   0xDA0E             BGE.N    ??drive_delay_2
+     59            {
+     60              for(i=0;i<30000;i++)
+   \   0000000C   0x2000             MOVS     R0,#+0
+   \   0000000E   0xE005             B.N      ??drive_delay_3
+     61              {
+     62                for(n=0;n<200;n++)
+     63                {
+     64                  asm("nop");
+   \                     ??drive_delay_4: (+1)
+   \   00000010   0xBF00             nop
+     65                }
+   \   00000012   0x1C49             ADDS     R1,R1,#+1
+   \                     ??drive_delay_5: (+1)
+   \   00000014   0xB289             UXTH     R1,R1            ;; ZeroExt  R1,R1,#+16,#+16
+   \   00000016   0x29C8             CMP      R1,#+200
+   \   00000018   0xDBFA             BLT.N    ??drive_delay_4
+   \   0000001A   0x1C40             ADDS     R0,R0,#+1
+   \                     ??drive_delay_3: (+1)
+   \   0000001C   0xB280             UXTH     R0,R0            ;; ZeroExt  R0,R0,#+16,#+16
+   \   0000001E   0xF247 0x5130      MOVW     R1,#+30000
+   \   00000022   0x4288             CMP      R0,R1
+   \   00000024   0xDAEE             BGE.N    ??drive_delay_1
+   \   00000026   0x2100             MOVS     R1,#+0
+   \   00000028   0xE7F4             B.N      ??drive_delay_5
+     66              }
+     67            
+     68            
+     69            }
+     70            
+     71          }
+   \                     ??drive_delay_2: (+1)
+   \   0000002A   0x4770             BX       LR               ;; return
+     72          
+     73          
+     74          
+
+   \                                 In section .text, align 2, keep-with-next
+     75          void main (void)
+     76          {
+   \                     main: (+1)
+   \   00000000   0xB580             PUSH     {R7,LR}
+     77          
+     78          
+     79            Right_Encoder_Init();
+   \   00000002   0x.... 0x....      BL       Right_Encoder_Init
+     80            Left_Encoder_Init();
+   \   00000006   0x.... 0x....      BL       Left_Encoder_Init
+     81            GPIO_Init();
+   \   0000000A   0x.... 0x....      BL       GPIO_Init
+     82            Motor_Init();
+   \   0000000E   0x.... 0x....      BL       Motor_Init
+     83            Servo_Init();
+   \   00000012   0x.... 0x....      BL       Servo_Init
+     84            Voltage_Adc_init();
+   \   00000016   0x.... 0x....      BL       Voltage_Adc_init
+     85            OLED_Init();
+   \   0000001A   0x.... 0x....      BL       OLED_Init
+     86            ccd_init();
+   \   0000001E   0x.... 0x....      BL       ccd_init
+     87            Para_Init();
+   \   00000022   0x.... 0x....      BL       Para_Init
+     88            
+     89            DebugData_Init();
+   \   00000026   0x.... 0x....      BL       DebugData_Init
+     90            
+     91            Pit_Init();
+   \   0000002A   0x.... 0x....      BL       Pit_Init
+     92            
+     93          
+     94          
+     95             
+     96          
+     97            while(1)
+     98            {
+     99          
+    100                
+    101                if(SW_In1==0)
+   \                     ??main_0: (+1)
+   \   0000002E   0x2105             MOVS     R1,#+5
+   \   00000030   0x....             LDR.N    R0,??DataTable5_3  ;; 0x400ff040
+   \   00000032   0x.... 0x....      BL       LPLD_GPIO_Input_b
+   \   00000036   0x2800             CMP      R0,#+0
+   \   00000038   0xD103             BNE.N    ??main_1
+    102                {
+    103                  If_Button_Press();
+   \   0000003A   0x.... 0x....      BL       If_Button_Press
+    104                  OLED_Draw_UI();
+   \   0000003E   0x.... 0x....      BL       OLED_Draw_UI
+    105                
+    106               }
+    107          
+    108                Send_Begin();
+   \                     ??main_1: (+1)
+   \   00000042   0x.... 0x....      BL       Send_Begin
+    109                Send_CCD();
+   \   00000046   0x.... 0x....      BL       Send_CCD
+    110                Send_Variable();
+   \   0000004A   0x.... 0x....      BL       Send_Variable
+   \   0000004E   0xE7EE             B.N      ??main_0
+    111          
+    112            } 
+    113          
+    114          }
+    115          
+    116          
+    117          
+    118          
+    119          
+    120          /*
+    121           * PIT中断函数
+    122           */
+
+   \                                 In section .text, align 2, keep-with-next
+    123          void pit_isr(void)
+    124          {
+   \                     pit_isr: (+1)
+   \   00000000   0xB580             PUSH     {R7,LR}
+    125            static uint8 part=0;
+    126            
+    127            
+    128            part+=1;
+   \   00000002   0x....             LDR.N    R0,??DataTable5_4
+   \   00000004   0x7800             LDRB     R0,[R0, #+0]
+   \   00000006   0x1C40             ADDS     R0,R0,#+1
+   \   00000008   0x....             LDR.N    R1,??DataTable5_4
+   \   0000000A   0x7008             STRB     R0,[R1, #+0]
+    129            SpeedCount+=1;
+   \   0000000C   0x....             LDR.N    R0,??DataTable5_5
+   \   0000000E   0x6800             LDR      R0,[R0, #+0]
+   \   00000010   0x1C40             ADDS     R0,R0,#+1
+   \   00000012   0x....             LDR.N    R1,??DataTable5_5
+   \   00000014   0x6008             STR      R0,[R1, #+0]
+    130            DirectionCount+=1;
+   \   00000016   0x....             LDR.N    R0,??DataTable5_6
+   \   00000018   0x6800             LDR      R0,[R0, #+0]
+   \   0000001A   0x1C40             ADDS     R0,R0,#+1
+   \   0000001C   0x....             LDR.N    R1,??DataTable5_6
+   \   0000001E   0x6008             STR      R0,[R1, #+0]
+    131            
+    132            switch(part)
+   \   00000020   0x....             LDR.N    R0,??DataTable5_4
+   \   00000022   0x7800             LDRB     R0,[R0, #+0]
+   \   00000024   0x2801             CMP      R0,#+1
+   \   00000026   0xD007             BEQ.N    ??pit_isr_0
+   \   00000028   0xD332             BCC.N    ??pit_isr_1
+   \   0000002A   0x2803             CMP      R0,#+3
+   \   0000002C   0xD021             BEQ.N    ??pit_isr_2
+   \   0000002E   0xD31D             BCC.N    ??pit_isr_3
+   \   00000030   0x2805             CMP      R0,#+5
+   \   00000032   0xD029             BEQ.N    ??pit_isr_4
+   \   00000034   0xD320             BCC.N    ??pit_isr_5
+   \   00000036   0xE02B             B.N      ??pit_isr_1
+    133            {
+    134              case 1:
+    135                Get_Speed();
+   \                     ??pit_isr_0: (+1)
+   \   00000038   0x.... 0x....      BL       Get_Speed
+    136                
+    137                if(SpeedCount>=10) 
+   \   0000003C   0x....             LDR.N    R0,??DataTable5_5
+   \   0000003E   0x6800             LDR      R0,[R0, #+0]
+   \   00000040   0x280A             CMP      R0,#+10
+   \   00000042   0xDB04             BLT.N    ??pit_isr_6
+    138                {
+    139                 
+    140                  Speed_Control();
+   \   00000044   0x.... 0x....      BL       Speed_Control
+    141                  SpeedCount=0;
+   \   00000048   0x2000             MOVS     R0,#+0
+   \   0000004A   0x....             LDR.N    R1,??DataTable5_5
+   \   0000004C   0x6008             STR      R0,[R1, #+0]
+    142                }
+    143                
+    144                
+    145                Voltage=LPLD_ADC_Get(ADC1,AD14)*0.002232;
+   \                     ??pit_isr_6: (+1)
+   \   0000004E   0x210E             MOVS     R1,#+14
+   \   00000050   0x....             LDR.N    R0,??DataTable5_7  ;; 0x400bb000
+   \   00000052   0x.... 0x....      BL       LPLD_ADC_Get
+   \   00000056   0x.... 0x....      BL       __aeabi_ui2d
+   \   0000005A   0x....             LDR.N    R2,??DataTable5_8  ;; 0xe02645e5
+   \   0000005C   0x....             LDR.N    R3,??DataTable5_9  ;; 0x3f6248d7
+   \   0000005E   0x.... 0x....      BL       __aeabi_dmul
+   \   00000062   0x.... 0x....      BL       __aeabi_d2f
+   \   00000066   0x....             LDR.N    R1,??DataTable5_10
+   \   00000068   0x6008             STR      R0,[R1, #+0]
+    146                break;
+   \   0000006A   0xE011             B.N      ??pit_isr_7
+    147                
+    148             
+    149              case 2: 
+    150                //CCD采集
+    151                CCD_Capture();
+   \                     ??pit_isr_3: (+1)
+   \   0000006C   0x.... 0x....      BL       CCD_Capture
+    152                
+    153                
+    154          
+    155                break;
+   \   00000070   0xE00E             B.N      ??pit_isr_7
+    156              case 3:
+    157                CCD_Normalization();//归一化程序
+   \                     ??pit_isr_2: (+1)
+   \   00000072   0x.... 0x....      BL       CCD_Normalization
+    158                
+    159                break;
+   \   00000076   0xE00B             B.N      ??pit_isr_7
+    160              case 4://道路识别
+    161                RoadType_Distinguish();
+   \                     ??pit_isr_5: (+1)
+   \   00000078   0x.... 0x....      BL       RoadType_Distinguish
+    162                Direction_Control();
+   \   0000007C   0x.... 0x....      BL       Direction_Control
+    163                DirectionCount=0;
+   \   00000080   0x2000             MOVS     R0,#+0
+   \   00000082   0x....             LDR.N    R1,??DataTable5_6
+   \   00000084   0x6008             STR      R0,[R1, #+0]
+    164          
+    165                break;
+   \   00000086   0xE003             B.N      ??pit_isr_7
+    166              case 5:
+    167          
+    168                part=0;
+   \                     ??pit_isr_4: (+1)
+   \   00000088   0x2000             MOVS     R0,#+0
+   \   0000008A   0x....             LDR.N    R1,??DataTable5_4
+   \   0000008C   0x7008             STRB     R0,[R1, #+0]
+    169                break;
+   \   0000008E   0xE7FF             B.N      ??pit_isr_7
+    170                
+    171              default:
+    172                break;
+    173              
+    174            
+    175            
+    176            }
+    177            Speed_Control_Output();//每ms更新速度输出量
+   \                     ??pit_isr_1: (+1)
+   \                     ??pit_isr_7: (+1)
+   \   00000090   0x.... 0x....      BL       Speed_Control_Output
+    178            Direction_Control_Output();//每ms更新方向输出量
+   \   00000094   0x.... 0x....      BL       Direction_Control_Output
+    179            Motor_Output();
+   \   00000098   0x.... 0x....      BL       Motor_Output
+    180          
+    181            servo_angle_control(0-PID_Turn.OUT);
+   \   0000009C   0x....             LDR.N    R0,??DataTable5_11
+   \   0000009E   0x6980             LDR      R0,[R0, #+24]
+   \   000000A0   0xF090 0x4000      EORS     R0,R0,#0x80000000
+   \   000000A4   0x.... 0x....      BL       __aeabi_f2iz
+   \   000000A8   0x.... 0x....      BL       servo_angle_control
+    182           
+    183            
+    184          
+    185            
+    186            
+    187          }
+   \   000000AC   0xBD01             POP      {R0,PC}          ;; return
+
+   \                                 In section .bss, align 1
+   \                     ??part:
+   \   00000000                      DS8 1
+    188          
+    189          
+    190          
+
+   \                                 In section .text, align 2, keep-with-next
+    191          void Send_CCD(void) 
+    192          {
+   \                     Send_CCD: (+1)
+   \   00000000   0xB538             PUSH     {R3-R5,LR}
+    193            uint8 i,num=136;
+   \   00000002   0x2588             MOVS     R5,#+136
+    194            
+    195             //通过串口发送一个字节的数据，下同
+    196            LPLD_UART_PutChar(UART4,0x55);
+   \   00000004   0x2155             MOVS     R1,#+85
+   \   00000006   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000008   0x.... 0x....      BL       LPLD_UART_PutChar
+    197          
+    198            LPLD_UART_PutChar(UART4,0xaa);
+   \   0000000C   0xF07F 0x0155      MVNS     R1,#+85
+   \   00000010   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000012   0x.... 0x....      BL       LPLD_UART_PutChar
+    199          
+    200            LPLD_UART_PutChar(UART4,0xaf);
+   \   00000016   0xF07F 0x0150      MVNS     R1,#+80
+   \   0000001A   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000001C   0x.... 0x....      BL       LPLD_UART_PutChar
+    201          
+    202            LPLD_UART_PutChar(UART4,num);
+   \   00000020   0x0029             MOVS     R1,R5
+   \   00000022   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   00000024   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000026   0x.... 0x....      BL       LPLD_UART_PutChar
+    203            for(i=0;i<num;i++)              //CCD
+   \   0000002A   0x2400             MOVS     R4,#+0
+   \   0000002C   0xE007             B.N      ??Send_CCD_0
+    204            {
+    205             
+    206             LPLD_UART_PutChar(UART4,CCD_Draw_Buff[i]);
+   \                     ??Send_CCD_1: (+1)
+   \   0000002E   0x....             LDR.N    R0,??DataTable5_13
+   \   00000030   0xB2E4             UXTB     R4,R4            ;; ZeroExt  R4,R4,#+24,#+24
+   \   00000032   0x5621             LDRSB    R1,[R4, R0]
+   \   00000034   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   00000036   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000038   0x.... 0x....      BL       LPLD_UART_PutChar
+    207            }
+   \   0000003C   0x1C64             ADDS     R4,R4,#+1
+   \                     ??Send_CCD_0: (+1)
+   \   0000003E   0xB2E4             UXTB     R4,R4            ;; ZeroExt  R4,R4,#+24,#+24
+   \   00000040   0xB2ED             UXTB     R5,R5            ;; ZeroExt  R5,R5,#+24,#+24
+   \   00000042   0x42AC             CMP      R4,R5
+   \   00000044   0xD3F3             BCC.N    ??Send_CCD_1
+    208            //帧尾，必须发送
+    209            LPLD_UART_PutChar(UART4,0x0f);
+   \   00000046   0x210F             MOVS     R1,#+15
+   \   00000048   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000004A   0x.... 0x....      BL       LPLD_UART_PutChar
+    210          }
+   \   0000004E   0xBD31             POP      {R0,R4,R5,PC}    ;; return
+    211          
+
+   \                                 In section .text, align 2, keep-with-next
+    212          void Send_Begin()
+    213          {
+   \                     Send_Begin: (+1)
+   \   00000000   0xB580             PUSH     {R7,LR}
+    214            LPLD_UART_PutChar(UART4,0x55);
+   \   00000002   0x2155             MOVS     R1,#+85
+   \   00000004   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000006   0x.... 0x....      BL       LPLD_UART_PutChar
+    215            LPLD_UART_PutChar(UART4,0xaa);
+   \   0000000A   0xF07F 0x0155      MVNS     R1,#+85
+   \   0000000E   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000010   0x.... 0x....      BL       LPLD_UART_PutChar
+    216            LPLD_UART_PutChar(UART4,0xae);
+   \   00000014   0xF07F 0x0151      MVNS     R1,#+81
+   \   00000018   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000001A   0x.... 0x....      BL       LPLD_UART_PutChar
+    217          
+    218          
+    219          }
+   \   0000001E   0xBD01             POP      {R0,PC}          ;; return
+    220          
+    221          
+
+   \                                 In section .text, align 2, keep-with-next
+    222          void Send_Variable()     //发送实时数据
+    223          {
+   \                     Send_Variable: (+1)
+   \   00000000   0xB538             PUSH     {R3-R5,LR}
+    224            uint8 i=0,ch=0;
+   \   00000002   0x2400             MOVS     R4,#+0
+   \   00000004   0x2100             MOVS     R1,#+0
+    225            float temp=0;
+   \   00000006   0x2000             MOVS     R0,#+0
+   \   00000008   0x9000             STR      R0,[SP, #+0]
+    226            uint8 Variable_num=16;
+   \   0000000A   0x2510             MOVS     R5,#+16
+    227          
+    228            
+    229            LPLD_UART_PutChar(UART4,0x55);
+   \   0000000C   0x2155             MOVS     R1,#+85
+   \   0000000E   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000010   0x.... 0x....      BL       LPLD_UART_PutChar
+    230            LPLD_UART_PutChar(UART4,0xaa);
+   \   00000014   0xF07F 0x0155      MVNS     R1,#+85
+   \   00000018   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000001A   0x.... 0x....      BL       LPLD_UART_PutChar
+    231            LPLD_UART_PutChar(UART4,0xad);
+   \   0000001E   0xF07F 0x0152      MVNS     R1,#+82
+   \   00000022   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000024   0x.... 0x....      BL       LPLD_UART_PutChar
+    232            LPLD_UART_PutChar(UART4,Variable_num);
+   \   00000028   0x0029             MOVS     R1,R5
+   \   0000002A   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   0000002C   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000002E   0x.... 0x....      BL       LPLD_UART_PutChar
+    233           for(i=0;i<Variable_num;i++)
+   \   00000032   0x2400             MOVS     R4,#+0
+   \   00000034   0xE01E             B.N      ??Send_Variable_0
+    234            {
+    235              temp=*Variable[i];
+   \                     ??Send_Variable_1: (+1)
+   \   00000036   0x....             LDR.N    R0,??DataTable5_14
+   \   00000038   0xB2E4             UXTB     R4,R4            ;; ZeroExt  R4,R4,#+24,#+24
+   \   0000003A   0xF850 0x0024      LDR      R0,[R0, R4, LSL #+2]
+   \   0000003E   0x6800             LDR      R0,[R0, #+0]
+   \   00000040   0x9000             STR      R0,[SP, #+0]
+    236              ch=BYTE0(temp);
+   \   00000042   0xF89D 0x1000      LDRB     R1,[SP, #+0]
+    237          
+    238               LPLD_UART_PutChar(UART4,ch);     
+   \   00000046   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   00000048   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000004A   0x.... 0x....      BL       LPLD_UART_PutChar
+    239              ch=BYTE1(temp);
+   \   0000004E   0xF89D 0x1001      LDRB     R1,[SP, #+1]
+    240          
+    241               LPLD_UART_PutChar(UART4,ch);  
+   \   00000052   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   00000054   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000056   0x.... 0x....      BL       LPLD_UART_PutChar
+    242              ch=BYTE2(temp);
+   \   0000005A   0xF89D 0x1002      LDRB     R1,[SP, #+2]
+    243          
+    244               LPLD_UART_PutChar(UART4,ch);  
+   \   0000005E   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   00000060   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000062   0x.... 0x....      BL       LPLD_UART_PutChar
+    245              ch=BYTE3(temp);
+   \   00000066   0xF89D 0x1003      LDRB     R1,[SP, #+3]
+    246          
+    247               LPLD_UART_PutChar(UART4,ch);  
+   \   0000006A   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \   0000006C   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   0000006E   0x.... 0x....      BL       LPLD_UART_PutChar
+    248            }
+   \   00000072   0x1C64             ADDS     R4,R4,#+1
+   \                     ??Send_Variable_0: (+1)
+   \   00000074   0xB2E4             UXTB     R4,R4            ;; ZeroExt  R4,R4,#+24,#+24
+   \   00000076   0xB2ED             UXTB     R5,R5            ;; ZeroExt  R5,R5,#+24,#+24
+   \   00000078   0x42AC             CMP      R4,R5
+   \   0000007A   0xD3DC             BCC.N    ??Send_Variable_1
+    249          
+    250              LPLD_UART_PutChar(UART4,0x0d);  
+   \   0000007C   0x210D             MOVS     R1,#+13
+   \   0000007E   0x....             LDR.N    R0,??DataTable5_12  ;; 0x400ea000
+   \   00000080   0x.... 0x....      BL       LPLD_UART_PutChar
+    251          } 
+   \   00000084   0xBD31             POP      {R0,R4,R5,PC}    ;; return
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5:
+   \   00000000   0x40180000         DC32     0x40180000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_1:
+   \   00000000   0x4084A000         DC32     0x4084a000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_2:
+   \   00000000   0x400B8000         DC32     0x400b8000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_3:
+   \   00000000   0x400FF040         DC32     0x400ff040
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_4:
+   \   00000000   0x........         DC32     ??part
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_5:
+   \   00000000   0x........         DC32     SpeedCount
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_6:
+   \   00000000   0x........         DC32     DirectionCount
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_7:
+   \   00000000   0x400BB000         DC32     0x400bb000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_8:
+   \   00000000   0xE02645E5         DC32     0xe02645e5
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_9:
+   \   00000000   0x3F6248D7         DC32     0x3f6248d7
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_10:
+   \   00000000   0x........         DC32     Voltage
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_11:
+   \   00000000   0x........         DC32     PID_Turn
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_12:
+   \   00000000   0x400EA000         DC32     0x400ea000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_13:
+   \   00000000   0x........         DC32     CCD_Draw_Buff
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_14:
+   \   00000000   0x........         DC32     Variable
+
+   Maximum stack usage in bytes:
+
+   .cstack Function
+   ------- --------
+       8   Send_Begin
+         8   -> LPLD_UART_PutChar
+      16   Send_CCD
+        16   -> LPLD_UART_PutChar
+      16   Send_Variable
+        16   -> LPLD_UART_PutChar
+       0   drive_delay
+       8   main
+         8   -> DebugData_Init
+         8   -> GPIO_Init
+         8   -> If_Button_Press
+         8   -> LPLD_GPIO_Input_b
+         8   -> Left_Encoder_Init
+         8   -> Motor_Init
+         8   -> OLED_Draw_UI
+         8   -> OLED_Init
+         8   -> Para_Init
+         8   -> Pit_Init
+         8   -> Right_Encoder_Init
+         8   -> Send_Begin
+         8   -> Send_CCD
+         8   -> Send_Variable
+         8   -> Servo_Init
+         8   -> Voltage_Adc_init
+         8   -> ccd_init
+       8   pit_isr
+         8   -> CCD_Capture
+         8   -> CCD_Normalization
+         8   -> Direction_Control
+         8   -> Direction_Control_Output
+         8   -> Get_Speed
+         8   -> LPLD_ADC_Get
+         8   -> Motor_Output
+         8   -> RoadType_Distinguish
+         8   -> Speed_Control
+         8   -> Speed_Control_Output
+         8   -> __aeabi_d2f
+         8   -> __aeabi_dmul
+         8   -> __aeabi_f2iz
+         8   -> __aeabi_ui2d
+         8   -> servo_angle_control
+       8   servo_angle_control
+         8   -> LPLD_FTM_PWM_ChangeDuty
+         8   -> __aeabi_d2iz
+         8   -> __aeabi_dmul
+         8   -> __aeabi_dsub
+         8   -> __aeabi_i2d
+
+
+   Section sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ??DataTable5
+       4  ??DataTable5_1
+       4  ??DataTable5_10
+       4  ??DataTable5_11
+       4  ??DataTable5_12
+       4  ??DataTable5_13
+       4  ??DataTable5_14
+       4  ??DataTable5_2
+       4  ??DataTable5_3
+       4  ??DataTable5_4
+       4  ??DataTable5_5
+       4  ??DataTable5_6
+       4  ??DataTable5_7
+       4  ??DataTable5_8
+       4  ??DataTable5_9
+       1  CCD_flag
+       4  SERVO_PI
+      32  Send_Begin
+      80  Send_CCD
+     134  Send_Variable
+      80  Variable
+      44  drive_delay
+       2  lptmr_result
+      80  main
+       1  part
+     174  pit_isr
+       4  qd_result
+       4  reserve
+      70  servo_angle_control
+
+ 
+  16 bytes in section .bss
+  80 bytes in section .data
+ 674 bytes in section .text
+ 
+ 674 bytes of CODE memory
+  96 bytes of DATA memory
+
+Errors: none
+Warnings: 1

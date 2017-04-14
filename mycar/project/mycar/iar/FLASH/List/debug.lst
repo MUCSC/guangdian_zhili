@@ -1,0 +1,996 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V7.40.2.8542/W32 for ARM        13/Apr/2017  22:11:34
+# Copyright 1999-2015 IAR Systems AB.
+#
+#    Cpu mode     =  thumb
+#    Endian       =  little
+#    Source file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\debug.c
+#    Command line =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\debug.c
+#        -D LPLD_K60 -D USE_K60DZ10 -lCN
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -lB
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -o
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\
+#        --no_cse --no_unroll --no_inline --no_code_motion --no_tbaa
+#        --no_clustering --no_scheduling --debug --endian=little
+#        --cpu=Cortex-M4 -e --fpu=None --dlib_config "E:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\INC\c\DLib_Config_Normal.h" -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\app\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\CPU\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\HW\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\DEV\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\FUNC\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Ports\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Source\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\option\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\driver\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\descriptor\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\class\
+#        -Ol -I "E:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\CMSIS\Include\" -D ARM_MATH_CM4
+#    List file    =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\debug.lst
+#    Object file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\debug.o
+#
+###############################################################################
+
+C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\debug.c
+      1          #include "include.h"
+      2          //OLED页面计数默认为页面零暂时设为3个页面
+      3          uint8 Page_Index=2,Para_Index=1,Light_Tower_Index=0,Para_Checked=0,Para_Choice=0,OLED_Refresh=0;
+      4          uint8 Race_Index=0;
+      5          uint8 Debug_Index=0;
+      6          uint8 Para_Index_Limit=7;       //一页最多有7个变量序号
+      7          uint8 Uart_Send=true;
+      8          uint8 Debug_Motor_ON;
+      9          uint8 Display_Edge=1;
+     10          uint8 CCD_Draw_Buff[150];
+     11          float reserve=0;
+     12          
+     13          char Debug_Mode[4][12]={"Normal  \0","UpRight\0","NoSpeed\0","NoDirec\0"};  //调试模式 正常 直立 没有速度 ，没有方向
+     14          
+     15          char Light_Tower_Para[4][11]={"OFF      \0","Normal   \0","StartOnly\0","StopOnly \0 "};   //灯塔模式
+     16          
+     17          uint8 light_tower_detected=0;
+     18          
+     19          uint8 SendPara=0;
+     20          uint8 SendSD=0;
+     21          uint8 SendCCD=0;
+     22          
+     23          //对应不同的页面
+     24          char Para_Name[7][12]={"PID_ANGLE.P\0","PID_ANGLE.D\0","PID_SPEED.P\0",
+     25          "PID_SPEED.I\0","PID_SPEED.D\0","PID_DIREC.P\0","PID_DIREC.D\0"};
+     26          
+     27          char Para_Name1[7][12]={"Fuzzy_Kp\0","Fuzzy_Kd\0","Hill_Slow\0",
+     28          "STurnAngle\0","STurnSpeed\0","BTurnAngle\0","BTurnSpeed\0"};
+     29          
+     30          char Car_Set_Name[7][12]={"Set_Speed\0","Set_Angle\0","Acc_Offset\0","Debug_Mode\0","Light_Tower\0","Protect\0","Threshold\0"};
+     31          
+     32          char Type_Switch[7][15]={"DoubleTurn\0","TurnToSingle\0","TurnToCross\0","TurnToAngle\0","StraightSlow","TurnToBarri\0","HillAngle\0"};
+     33          
+     34          
+     35          uint8 OverWrite=true;                        //数据重写
+     36          uint8 Stop=true,CarStopedJustNow=false;
+     37          uint8 Starting=false;                //正在启动
+     38          int   Start_Cnt=0;
+     39          
+     40          
+     41          float Voltage=0;
+     42          
+     43          float Step[6]={0.0001,0.001,0.01,0.1,1.0,10.0};   //默认调节步长为0.01
+     44          unsigned char Step_Index=2;
+     45          #define Frame_Len 4  //帧长为4
+     46          
+     47          //将PID变量的地址加到指针数组里
+     48          float *Control_Para[16]={&PID_ANGLE.P,&PID_ANGLE.D,&PID_SPEED.P,&PID_SPEED.I,&PID_SPEED.D,&PID_TURN.P,&PID_TURN.D,&SetSpeed,
+     49                                   &Fuzzy_Kp,&Fuzzy_Kd,&Delta_P,&Delta_D};
+     50          float *Variable[20]={&Angle,&Angle_Speed,&Car_Angle,&Middle_Err,&Delt_error,&Turn_Speed,&CarSpeed,&Voltage,&PID_ANGLE.OUT,
+     51                                &PID_SPEED.OUT,&PID_TURN.OUT,&RightMotorOut,&LeftMotorOut,&ControlSpeed,&Distance,&RunTime,&Character_Distance,&reserve,&reserve,&reserve};
+     52          
+     53          uint8 Data_Buf[Frame_Len];
+     54          
+     55          void OLED_Draw_UI()  //画出界面
+     56          { 
+     57            uint8 i;
+     58             if(Page_Index!=4)                                     //第三页显示CCD图像
+     59             {
+     60               OLED_P6x8Str(0,0,"Voltage=");                          //显示电池电压
+     61               OLED_PrintValueF(48, 0,Voltage,2);                     
+     62               OLED_PrintValueF(72, 0,Step[Step_Index],5);            //显示调节步进值
+     63               if((Page_Index!=3)&&Para_Index==7)
+     64               {
+     65                  reverse=1; 
+     66                   OLED_P6x8Str(116,0,"EE"); 
+     67                  reverse=0;
+     68               }
+     69               else  
+     70               {
+     71                  OLED_P6x8Str(116,0,"EE"); 
+     72               }
+     73               OLED_Set_Pos(122,7);
+     74               OLED_P6x8Char(Page_Index+48);                         //写出页面序号
+     75             }
+     76            /////////////////////////////////////////////////////////第0页  PID调节
+     77            if(Page_Index==0)                
+     78            {
+     79              for(i=0;i<7;i++)
+     80              {
+     81                if(i==Para_Index&&Para_Choice==true&&Para_Checked==false)
+     82                {
+     83                 reverse=1;
+     84                 OLED_P6x8Str(0,i+1,Para_Name[i]);   //将参量名反转显示
+     85                 reverse=0;
+     86                }
+     87                else OLED_P6x8Str(0,i+1,Para_Name[i]);
+     88          
+     89                
+     90                
+     91                if(i==(Para_Index)&&Para_Checked)
+     92                {
+     93                  reverse=1;
+     94                  OLED_PrintValueF(72, i+1,*Control_Para[i],5);
+     95                  reverse=0;
+     96                }
+     97                else  OLED_PrintValueF(72, i+1,*Control_Para[i],5);
+     98                
+     99                OLED_Set_Pos(116,i+1);
+    100          
+    101              }
+    102            }
+    103            /////////////////////////////////////////////////////////第1页  PID调节
+    104              else if(Page_Index==1)
+    105            {  
+    106               for(i=0;i<7;i++)
+    107              {
+    108               if(i==Para_Index&&Para_Choice==true&&Para_Checked==false)
+    109                {
+    110                 reverse=1;
+    111                 OLED_P6x8Str(0,i+1,Para_Name1[i]);   //将参量名反转显示
+    112                 reverse=0;
+    113                }
+    114                else OLED_P6x8Str(0,i+1,Para_Name1[i]);
+    115              }
+    116                OLED_Set_Pos(116,i+1);
+    117              
+    118                 if(Para_Index==0&&Para_Checked)
+    119                {
+    120                  reverse=1;
+    121                  OLED_PrintValueF(72, 1,Fuzzy_Kp,5);
+    122                  reverse=0;
+    123                }
+    124                else 
+    125                  OLED_PrintValueF(72, 1,Fuzzy_Kp,5);
+    126                 
+    127                if(Para_Index==1&&Para_Checked)
+    128                {
+    129                  reverse=1;
+    130                  OLED_PrintValueF(72, 2,Fuzzy_Kd,5);
+    131                  reverse=0;
+    132                }
+    133                else 
+    134                  OLED_PrintValueF(72, 2,Fuzzy_Kd,5);
+    135                
+    136                 if(Para_Index==2&&Para_Checked)
+    137                {
+    138                  reverse=1;
+    139                  OLED_PrintValueF(72, 3,Hill_Slow_Ratio,3);
+    140                  reverse=0;
+    141                }
+    142                else 
+    143                  OLED_PrintValueF(72, 3,Hill_Slow_Ratio,3);
+    144          
+    145                 
+    146                 if(Para_Index==3&&Para_Checked)
+    147                {
+    148                  reverse=1;
+    149                   OLED_PrintValueI(72,4,Strong_Turn_Angle);
+    150                  reverse=0;
+    151                }
+    152                else 
+    153                   OLED_PrintValueI(72,4,Strong_Turn_Angle);
+    154                 
+    155                  if(Para_Index==4&&Para_Checked)
+    156                {
+    157                  reverse=1;
+    158                   OLED_PrintValueI(72,5,Strong_Turn_Speed);
+    159                  reverse=0;
+    160                }
+    161                else 
+    162                   OLED_PrintValueI(72,5,Strong_Turn_Speed);
+    163                  
+    164                 if(Para_Index==5&&Para_Checked)
+    165                {
+    166                  reverse=1;
+    167                   OLED_PrintValueI(72,6,Barri_Turn_Angle);
+    168                  reverse=0;
+    169                }
+    170                else 
+    171                   OLED_PrintValueI(72,6,Barri_Turn_Angle); 
+    172                 
+    173                 
+    174                       
+    175                 if((6==Para_Index)&&Para_Checked)  //参数4  阈值
+    176                {
+    177                  reverse=1;
+    178                 OLED_PrintValueI(72,7,Barri_Turn_Speed);
+    179                  reverse=0;
+    180                }
+    181                else    OLED_PrintValueI(72,7,Barri_Turn_Speed); 
+    182                 
+    183          
+    184            }
+    185            /////////////////////////////////////////////////////////第2页            查看车身信息
+    186            else if(Page_Index==2)
+    187            {   
+    188              for(i=0;i<7;i++)
+    189              {
+    190                if(i==Para_Index&&Para_Choice==true&&Para_Checked==false)
+    191                {
+    192                 reverse=1;
+    193                 OLED_P6x8Str(0,i+1,Car_Set_Name[i]);   //将参量名反转显示
+    194                 reverse=0;
+    195                }
+    196                else OLED_P6x8Str(0,i+1,Car_Set_Name[i]);
+    197          
+    198                OLED_Set_Pos(116,i+1);
+    199            
+    200              }  
+    201               //参数的反转显示
+    202                if((0==Para_Index)&&Para_Checked)    //参数0    设定速度
+    203                {
+    204                  reverse=1;
+    205                  OLED_PrintValueF(72, 1,SetSpeed,3);
+    206                  reverse=0;
+    207                }
+    208                else    OLED_PrintValueF(72,1,SetSpeed,3);
+    209              
+    210                 if((1==Para_Index)&&Para_Checked)  //参数1     加速前倾角度
+    211                {
+    212                  reverse=1;
+    213                  OLED_PrintValueI(72,2,Set_Angle);
+    214                  reverse=0;
+    215                }
+    216                else    OLED_PrintValueI(72,2,Set_Angle);
+    217                   
+    218                if((2==Para_Index)&&Para_Checked)  //参数2    加速度计中值
+    219                {
+    220                  reverse=1;
+    221                 OLED_PrintValueI(72,3,Acc_Offset);
+    222                  reverse=0;
+    223                }
+    224                else    OLED_PrintValueI(72,3,Acc_Offset);
+    225                
+    226                
+    227                 if((3==Para_Index)&&Para_Checked)  //参数2    调试模式
+    228                {
+    229                  reverse=1;
+    230                 OLED_P6x8Str(72, 4,Debug_Mode[Debug_Index]);
+    231                  reverse=0;
+    232                }
+    233                else     OLED_P6x8Str(72, 4,Debug_Mode[Debug_Index]);
+    234              
+    235                  if((4==Para_Index)&&Para_Checked)  //参数3    灯塔模式
+    236                { 
+    237                  reverse=1;
+    238                       OLED_P6x8Str(72, 5, Light_Tower_Para[Light_Tower_Index]);  
+    239                  reverse=0;
+    240                }
+    241                else  OLED_P6x8Str(72, 5, Light_Tower_Para[Light_Tower_Index]);
+    242                
+    243                 if((5==Para_Index)&&Para_Checked)  //参数3  是否保护
+    244                {
+    245                  reverse=1;
+    246                  if(!Protect)
+    247                   OLED_P6x8Str(72, 6,"FALSE");
+    248                  else
+    249                   OLED_P6x8Str(72, 6,"TRUE ");
+    250                  reverse=0;
+    251                }
+    252                else 
+    253                {  
+    254                  if(!Protect)
+    255                  OLED_P6x8Str(72, 6,"FALSE");
+    256                  else
+    257                  OLED_P6x8Str(72, 6,"TRUE ");
+    258                }
+    259                
+    260                  if((6==Para_Index)&&Para_Checked)  //参数4   是否重写数据?
+    261                {
+    262                  reverse=1;
+    263                  OLED_PrintValueI(72,7,Threshold);
+    264                  reverse=0;
+    265                }
+    266                else 
+    267                {  
+    268                  OLED_PrintValueI(72,7,Threshold);
+    269                }
+    270            }
+    271              /////////////////////////////////////////////////////////第3页
+    272            else if(Page_Index==3)
+    273            {
+    274              OLED_P6x8Str(0,1,"CarAngle");
+    275              OLED_PrintValueF(72,1,Car_Angle,3);
+    276              OLED_P6x8Str(0,2,"GyroSpeed");
+    277              OLED_PrintValueF(72, 2,Angle_Speed,3);
+    278              OLED_P6x8Str(0,3,"CarSpeed");
+    279              OLED_PrintValueF(72, 3,CarSpeed,3);
+    280              OLED_P6x8Str(0,4,"Distance");
+    281              OLED_PrintValueF(72, 4,Distance,4);
+    282              OLED_P6x8Str(0,5,"RunTime");
+    283              OLED_PrintValueF(72, 5,RunTime,4);
+    284              OLED_P6x8Str(0,6,"Average_Spd");
+    285              OLED_PrintValueF(72, 6,AverageSpeed,4);    
+    286              
+    287              
+    288              if(Para_Choice==true&&Para_Checked==false)   reverse=1;
+    289              OLED_P6x8Str(0,7,"Encoder_Dis");
+    290              reverse=0;
+    291                 if((0==Para_Index)&&Para_Checked)  //参数4   是否开启保护
+    292                {
+    293                  reverse=1;
+    294                  if(Encoder_Disable==0)
+    295                   OLED_P6x8Str(72, 7,"None ");
+    296                  else if(Encoder_Disable==1)
+    297                   OLED_P6x8Str(72, 7,"Left ");
+    298                  else if(Encoder_Disable==2)
+    299                   OLED_P6x8Str(72, 7,"Right");
+    300                  reverse=0;
+    301                }
+    302                else 
+    303                {  
+    304                  if(Encoder_Disable==0)
+    305                   OLED_P6x8Str(72, 7,"None ");
+    306                  else if(Encoder_Disable==1)
+    307                   OLED_P6x8Str(72, 7,"Left ");
+    308                  else if(Encoder_Disable==2)
+    309                   OLED_P6x8Str(72, 7,"Right");
+    310                }
+    311            } 
+    312                /////////////////////////////////////////////////////////第4页
+    313            else if(Page_Index==4)
+    314            {
+    315              Draw_CCD();  
+    316            }
+    317            else if(Page_Index==5)
+    318            {
+    319               for(i=0;i<7;i++)
+    320              {
+    321                if(i==Para_Index&&Para_Choice==true&&Para_Checked==false)
+    322                {
+    323                 reverse=1;
+    324                 OLED_P6x8Str(0,i+1,Type_Switch[i]);   //将参量名反转显示
+    325                 reverse=0;
+    326                }
+    327                else OLED_P6x8Str(0,i+1,Type_Switch[i]); 
+    328                
+    329                
+    330                 if(i==(Para_Index)&&Para_Checked)
+    331                {
+    332                  reverse=1;
+    333                  if(RoadTypeSwitch&(1<<i))
+    334                     OLED_P6x8Str(84,i+1,"ON ");   //将参量名反转显示
+    335                  else   OLED_P6x8Str(84,i+1,"OFF");   //将参量名反转显示
+    336                  reverse=0;
+    337                }
+    338                else
+    339                { 
+    340                   if(RoadTypeSwitch&(1<<i))
+    341                     OLED_P6x8Str(84,i+1,"ON ");   //将参量名反转显示
+    342                    else   OLED_P6x8Str(84,i+1,"OFF");   //将参量名反转显示
+    343                }
+    344              
+    345              
+    346              } 
+    347            }
+    348            
+    349          }
+    350          void Draw_CCD()
+    351          {
+    352            uint8 i,j,line,dot;
+    353            uint8 temp=0;
+    354            for(j=0;j<128;j++)
+    355            {  
+    356          
+    357              temp=32-(uint8)(CCD_Draw_Buff[j]>>2);  //除以4
+    358              line=temp/8;
+    359              dot =temp%8; 
+    360          
+    361              for(i=0;i<4;i++)
+    362              {
+    363                  OLED_Set_Pos(j,i);
+    364                if(Display_Edge&&((CCD_Draw_Buff[128]!=0&& CCD_Draw_Buff[128]==j)||( CCD_Draw_Buff[129]!=128&& CCD_Draw_Buff[129]==j)))
+    365                {
+    366                 if( CCD_Draw_Buff[128]==j) 
+    367                 { 
+    368                   if(Leftlastfind)     OLED_WrDat(0xff,0);  
+    369                   else                 OLED_WrDat(0xaa,0); 
+    370                 }
+    371                 else 
+    372                 { 
+    373                   if(Rightlastfind)  OLED_WrDat(0xff,0);  
+    374                   else               OLED_WrDat(0xaa,0);  
+    375                 }
+    376                       
+    377                }
+    378                else
+    379                { 
+    380                 if(i==line)
+    381                 OLED_WrDat(1<<dot,0);
+    382                 else 
+    383                 OLED_WrDat(0,0);
+    384                }
+    385              }
+    386            }
+    387             OLED_P6x8Str(1,4,"Left=");
+    388             OLED_PrintValueF(31, 4,Left,3);
+    389             OLED_P6x8Str(64,4,"Right="); 
+    390             OLED_PrintValueF(100, 4, Right,3);
+    391             OLED_P6x8Str(0,5,"Middle_Err=");
+    392             OLED_PrintValueF(72, 5,Middle_Err,3);
+    393             OLED_P6x8Str(0,6,     "Max_Peak  =");
+    394             OLED_PrintValueF(72, 6,Max_Peak,3);     
+    395             OLED_P6x8Str(0,7,  "Max_Value =");
+    396             OLED_PrintValueF(72, 7,Max_Value,4);
+    397             OLED_Set_Pos(122,7);
+    398             OLED_P6x8Char('L');      
+    399                                
+    400          }
+    401          /*
+    402           * 读拨码开关的值
+    403           */
+    404          /*void Read_Switch() 
+    405          {
+    406            if(BT3_In==0) 
+    407            {
+    408              if(OLED_Refresh==false)
+    409              {
+    410               OLED_Init();
+    411               Stop=true;
+    412               OLED_Refresh=true;
+    413              }
+    414            }
+    415            else           
+    416            {
+    417              if(OLED_Refresh==true)
+    418              {
+    419                OLED_Refresh=false;
+    420                OLED_Fill(0x00);       
+    421              }
+    422            }
+    423          
+    424            if(PTB7_IN==0)   
+    425            {
+    426              Uart_Send=true;
+    427            } 
+    428             else Uart_Send=false;
+    429            
+    430            if(PTB8_IN==0)  
+    431            {
+    432               if(Debug_Motor_ON==false)
+    433              {
+    434               Debug_Motor_ON=true;
+    435              }
+    436            }
+    437             else Debug_Motor_ON=false;
+    438          
+    439           
+    440            if(PTB9_IN==0) 
+    441           {
+    442              if(SaveData==false)
+    443              {
+    444               SaveData=true;    
+    445              }
+    446           }
+    447            else   SaveData=false;
+    448          } */
+    449          
+    450          //检查启动按钮
+    451          void Check_StartPress()
+    452          {
+    453             //按键 取消
+    454               if(PTA7_IN==0)
+    455             {
+    456                //去抖
+    457                DELAY_MS(100);
+    458                if(PTA7_IN==0)
+    459                { 
+    460                 if(Stop==true)
+    461                 {
+    462                   Start_Cnt=3000;
+    463                   Starting=true;
+    464                   Stop=false; 
+    465                   ForceStop=false;
+    466                   //把所有速度控制变量清零
+    467                   SpeedControlOutOld=0;
+    468                   SpeedControlOutNew=0;
+    469                   SpeedControlIntegral=0;  
+    470                   PID_SPEED.OUT=0;
+    471                   Distance=0;
+    472                   RunTime=0;
+    473                   RoadType=0;
+    474                   ControlSpeed=0;
+    475                   Leftlastfind=0;//重新搜线
+    476                   Hill_Flag=0;
+    477                   Rightlastfind=0;
+    478                   Last_Angle_Turn_Position=0;
+    479                   Last_Singleine_Position=0;
+    480                   light_tower_detected=0;
+    481                 }
+    482                 else
+    483                 {
+    484                  Stop=true;
+    485                  CarStopedJustNow=true;     //小车刚停止
+    486                 }
+    487                }
+    488                while(PTA7_IN==0);  //直到按键松开再运行
+    489             } 
+    490          }
+    491          /*
+    492           * 检测按键是否按下
+    493           */
+    494          void Check_BottonPress()
+    495          {
+    496             //按键1 yes
+    497             if(PTA4_IN==0) 
+    498             {
+    499               //去抖
+    500                DELAY_MS(10);
+    501                if(PTA4_IN==0)
+    502               {    
+    503                 if(Para_Index==7) 
+    504                 { 
+    505                   EEPROM_Save();
+    506                   Para_Index=0; 
+    507                 }
+    508                 else
+    509                 {
+    510                  if(Para_Choice==false)  Para_Choice=true;  //  选择参量   
+    511                  else
+    512                 {
+    513                   if(Para_Checked==false) Para_Checked=true;
+    514                   else Para_Checked=false;       
+    515                  }
+    516                 }
+    517                }
+    518                while(PTA4_IN==0); //直到按键松开再运行
+    519             }
+    520             //按键 取消
+    521               if(PTA12_IN==0)
+    522             {
+    523                //去抖
+    524                DELAY_MS(10);
+    525                if(PTA12_IN==0)
+    526                {    
+    527                 if(Para_Choice==true) Para_Choice=false; //不选择参量
+    528                 if(Para_Checked==true)Para_Checked=false;
+    529                 if(Page_Index==4)
+    530                 {
+    531                   if(Display_Edge) Display_Edge=0;
+    532                   else Display_Edge=1;
+    533                 }
+    534                }
+    535                while(PTA12_IN==0);  //直到按键松开再运行
+    536             } 
+    537             //按键2 Left_L
+    538               if(PTA5_IN==0)
+    539             {
+    540                //去抖
+    541                DELAY_MS(10);
+    542                if(PTA5_IN==0)
+    543                {
+    544                  if(Para_Checked) 
+    545                  {
+    546                    if(Step_Index==5) 
+    547                    Step_Index=5;   //最大的步长为10
+    548                    else Step_Index++;
+    549                  }
+    550                  else 
+    551                  { 
+    552                    Para_Index=0;
+    553                    if(Page_Index==0) Page_Index=5; //当参数没被选中的时候，按左右键翻页
+    554                    else Page_Index--;
+    555                    OLED_Fill(0);//清屏 
+    556                  }
+    557                }
+    558                while(PTA5_IN==0);//直到按键松开再运行
+    559             } 
+    560             //按键6 Right_L
+    561               if(PTA13_IN==0)
+    562             {
+    563                //去抖
+    564                DELAY_MS(10);
+    565                if(PTA13_IN==0)
+    566                {
+    567                  if(Para_Checked) 
+    568                  {
+    569                    if(Step_Index==0) 
+    570                     Step_Index=0;//最小的步长为0.0001
+    571                    else
+    572                    {
+    573                      Step_Index--;
+    574                    }
+    575                  }
+    576                  else 
+    577                  { 
+    578                    Para_Index=0;
+    579                    if(Page_Index==5) Page_Index=0;
+    580                    else Page_Index++;
+    581                   OLED_Fill(0);//清屏 
+    582                  }
+    583                }
+    584                while(PTA13_IN==0);      //直到按键松开再运行
+    585             }
+    586             //按键3 up
+    587               if(PTA6_IN==0)
+    588             {
+    589                DELAY_MS(10);
+    590                if(PTA6_IN==0)
+    591                {
+    592                  if(Para_Choice==true)
+    593                  {
+    594                    if(Para_Checked==false)
+    595                    {
+    596                     if(Para_Index==0) Para_Index=Para_Index_Limit;
+    597                     else Para_Index-=1;
+    598                    }
+    599                    else
+    600                    {
+    601                        if(Page_Index==0&&Para_Index<=6)                    //修改第0页的参数
+    602                      {
+    603                        *Control_Para[Para_Index]+=Step[Step_Index];
+    604                      }
+    605                      
+    606                      if(Page_Index==1&&Para_Index<=6)                    //修改第1页的参数
+    607                      {
+    608                        if(Para_Index==0)Fuzzy_Kp+=Step[Step_Index];
+    609                        if(Para_Index==1)Fuzzy_Kd+=Step[Step_Index];
+    610                        if(Para_Index==2)Hill_Slow_Ratio+=Step[Step_Index];
+    611                        if(Para_Index==3)Strong_Turn_Angle+=Step[Step_Index];
+    612                        if(Para_Index==4)Strong_Turn_Speed+=Step[Step_Index];
+    613                        if(Para_Index==5)Barri_Turn_Angle+=Step[Step_Index];
+    614                        if(Para_Index==6)Barri_Turn_Speed+=(uint8)Step[Step_Index];
+    615                      }
+    616                      
+    617                      if(Page_Index==2&&Para_Index<=6)                    //修改第2页的参数
+    618                      {
+    619                        if(Para_Index==0) SetSpeed+=Step[Step_Index];         //设定速度    
+    620                        if(Para_Index==1) Set_Angle+=(uint8)Step[Step_Index]; //加速角度
+    621                        if(Para_Index==2) Acc_Offset+=(int)Step[Step_Index];  //设定中点值            
+    622                 
+    623                        if(Para_Index==3)                                
+    624                        {
+    625                         if(Debug_Index==3)Debug_Index=0;
+    626                         else Debug_Index++;                   
+    627                        }
+    628                        if(Para_Index==4)                                //灯塔模式设定
+    629                        {
+    630                        if(Light_Tower_Index==3)Light_Tower_Index=0;
+    631                         else Light_Tower_Index++;                 
+    632                        } 
+    633                        if(Para_Index==5)
+    634                        {
+    635                         if(Protect) Protect=0;
+    636                         else Protect=1;
+    637                        }
+    638                        if(Para_Index==6)Threshold+=(uint8)Step[Step_Index];
+    639                      } 
+    640                       if(Page_Index==3)      
+    641                       {
+    642                         Encoder_Disable++;
+    643                         if(Encoder_Disable>2)
+    644                         Encoder_Disable=0;
+    645                       }
+    646                       
+    647                       if(Page_Index==5)                    //修改第0页的参数
+    648                      {
+    649                       if(RoadTypeSwitch&(1<<Para_Index))
+    650                       RoadTypeSwitch&=~(1<<Para_Index);  
+    651                        else    RoadTypeSwitch|=(1<<Para_Index); 
+    652                      } 
+    653                                   
+    654                    }
+    655                  }
+    656                }  
+    657                
+    658               
+    659               
+    660                while(PTA6_IN==0);//直到按键松开再运行  
+    661             }
+    662             //按键4 down
+    663               if(PTA7_IN==0)
+    664             {
+    665                DELAY_MS(10);
+    666                if(PTA7_IN==0)
+    667                {
+    668                 if(Para_Choice==true)
+    669                  {
+    670                    if(Para_Checked==false)
+    671                    {             
+    672                      if(Para_Index==Para_Index_Limit)Para_Index=0;   //防止序号超出范围
+    673                      else  Para_Index+=1; 
+    674                    }
+    675                     else 
+    676                     {
+    677                        if(Page_Index==0&&Para_Index<=6)                    //修改第0页的参数
+    678                      {
+    679                        *Control_Para[Para_Index]-=Step[Step_Index];
+    680                      }
+    681                       
+    682                       if(Page_Index==1&&Para_Index<=6)                    //修改第0页的参数
+    683                      {
+    684                        if(Para_Index==0)Fuzzy_Kp-=Step[Step_Index];
+    685                        if(Para_Index==1)Fuzzy_Kd-=Step[Step_Index];
+    686                        if(Para_Index==2)Hill_Slow_Ratio-=Step[Step_Index];
+    687                        if(Para_Index==3)Strong_Turn_Angle-=Step[Step_Index];
+    688                        if(Para_Index==4)Strong_Turn_Speed-=Step[Step_Index];
+    689                        if(Para_Index==5)Barri_Turn_Angle-=Step[Step_Index]; 
+    690                        if(Para_Index==6)Barri_Turn_Speed-=(uint8)Step[Step_Index];
+    691                       
+    692                      }
+    693                      
+    694                       if(Page_Index==2&&Para_Index<=6)                    //修改第1页的参数
+    695                      {
+    696                        if(Para_Index==0) SetSpeed-=Step[Step_Index];         //设定速度    
+    697                        if(Para_Index==1) Set_Angle-=(uint8)Step[Step_Index]; //加速角度
+    698                        if(Para_Index==2) Acc_Offset-=(int)Step[Step_Index];  //设定中点值            
+    699                        if(Para_Index==3)                                //调试模式
+    700                        {
+    701                         if(Debug_Index==0)Debug_Index=3;
+    702                         else Debug_Index--;                   
+    703                        }
+    704                         if(Para_Index==4)                             
+    705                        {
+    706                           if(Light_Tower_Index==0)Light_Tower_Index=3;
+    707                         else Light_Tower_Index--;        
+    708                        }
+    709                        if(Para_Index==5)
+    710                        {
+    711                         if(Protect) Protect=0;
+    712                         else Protect=1;
+    713                        } 
+    714                        if(Para_Index==6) Threshold-=(uint8)Step[Step_Index];
+    715                      } 
+    716                        if(Page_Index==3)      
+    717                       { 
+    718                         if(Encoder_Disable==0)
+    719                         Encoder_Disable=3;
+    720                         Encoder_Disable--;
+    721                       }
+    722                       
+    723                       if(Page_Index==5)                    //修改第0页的参数
+    724                      {
+    725                       if(RoadTypeSwitch&(1<<Para_Index))
+    726                       RoadTypeSwitch&=~(1<<Para_Index);  
+    727                        else    RoadTypeSwitch|=(1<<Para_Index); 
+    728                      }      
+    729                    }
+    730                  }
+    731                }
+    732          
+    733                while(PTA7_IN==0);  //直到按键松开再运行
+    734             }
+    735          }
+    736          /*
+    737           * 串口中断函数
+    738           */
+    739          void UART0_RX_IRQHandler(void)
+    740          {
+    741            static uint8 recv,recv_last;
+    742            static uint8 data_cnt=0;
+    743            static uint8 Recv_Buff[50];
+    744            static uint8 Block_Index_receiving=false,Data_Receiving=false;
+    745            
+    746            if(uart_query(UART0)==1)  uart_getchar (UART0,(char*)(&recv));
+    747            
+    748            if(Data_Receiving||Block_Index_receiving)
+    749            {
+    750              if(Data_Receiving)
+    751              {
+    752                if(data_cnt<40)
+    753                {
+    754                 Recv_Buff[data_cnt]= recv;
+    755                 data_cnt++;
+    756                }
+    757                else
+    758                {
+    759                  data_cnt=0;    //达到帧长
+    760                  Data_Receiving=false;
+    761                  if(recv==0XAB)  //帧尾
+    762                  {
+    763                     Modify_Para(Recv_Buff);
+    764                     SendPara=1;
+    765                  }
+    766                }
+    767              }
+    768             if(Block_Index_receiving)
+    769             {
+    770               if(data_cnt>=2)
+    771               {
+    772                 if(recv==0x36)  //校验帧尾
+    773                 {
+    774                  BYTE0(Block_Index)= Data_Buf[0];
+    775                  BYTE1(Block_Index)= Data_Buf[1];
+    776                  SendSD=true;
+    777                 }
+    778                  Block_Index_receiving=false;
+    779                  data_cnt=0;
+    780               }
+    781               else
+    782               {
+    783                 Data_Buf[data_cnt]=recv;
+    784                 data_cnt++;
+    785               }
+    786             }
+    787            }
+    788            else
+    789            {
+    790                switch(recv)         //判断功能字
+    791               {     
+    792                   case 0x30:           //传输SD卡 上一片区
+    793                   if(SendPara==0)
+    794                   SendPara=1;
+    795                   break;           
+    796                   case 0x33:           //传输SD卡 下一扇区
+    797                   if(SD_OK)
+    798                   {
+    799                     Block_Index++;
+    800                     SendSD=true;
+    801                   }
+    802                   break;
+    803                   case 0x34:           //传输SD卡 上一扇区
+    804                   if(SD_OK)
+    805                   {
+    806                     Block_Index--;
+    807                     SendSD=true;
+    808                   }
+    809                   break;
+    810                   case 0x35:          //扇区跳转    
+    811                   if(SD_OK)
+    812                   {
+    813                     if(Block_Index_receiving==false)
+    814                     {
+    815                       Block_Index_receiving=true;
+    816                       data_cnt=0;
+    817                     }
+    818                   }
+    819                  break;
+    820                  
+    821                  case 0XAF:
+    822                  if(recv_last==0xAA)//数据帧头
+    823                  {
+    824                    Data_Receiving=true;
+    825                    data_cnt=0;
+    826                  }
+    827                  break;
+    828                  
+    829                  case 0XAD:
+    830                  {
+    831                    if(recv_last==0xAC)//数据帧头
+    832                    {
+    833                     EEPROM_Save();
+    834                    }
+    835                  }
+    836                  break;
+    837                    
+    838                  default:           //收到其他数据默认为修改相关变量
+    839                     Block_Index=0;
+    840                     SendSD=true;
+    841                  break;
+    842                }
+    843              }
+    844            recv_last=recv; 
+    845            uart_rx_irq_en(UART0);//使能串口接收中断 
+    846          }
+    847          //修改参数
+    848          void Modify_Para(uint8 *buff)
+    849          {
+    850             uint8 i=0,addr=0;
+    851             float temp;
+    852             for(i=0;i<10;i++)
+    853            {
+    854                 BYTE0(temp)=*(uint8*)(buff+addr);
+    855                 addr++;
+    856                 BYTE1(temp)=*(uint8*)(buff+addr);
+    857                 addr++;
+    858                 BYTE2(temp)=*(uint8*)(buff+addr);
+    859                 addr++;
+    860                 BYTE3(temp)=*(uint8*)(buff+addr);
+    861                 addr++;
+    862                 *Control_Para[i]=temp;
+    863             }
+    864          }
+    865          //发送控制参数
+    866          void Send_Para()
+    867          {
+    868            uint8 i=0,ch=0;
+    869            float temp=0;
+    870            uart_putchar(UART0,0xaa);
+    871            uart_putchar(UART0,0xaa);
+    872            uart_putchar(UART0,0xaa);
+    873            for(i=0;i<10;i++)
+    874            {
+    875              temp=*Control_Para[i];
+    876              if(temp<0.00001&&temp>-0.00001)
+    877                temp=0;
+    878              else temp=temp+0.000001;
+    879              ch=BYTE0(temp);
+    880              uart_putchar(UART0,ch);
+    881              ch=BYTE1(temp);
+    882              uart_putchar(UART0,ch);
+    883              ch=BYTE2(temp);
+    884              uart_putchar(UART0,ch);
+    885              ch=BYTE3(temp);
+    886              uart_putchar(UART0,ch);
+    887            }
+    888              uart_putchar(UART0,0X0a);;//帧尾
+    889          }
+    890          
+    891          void Send_Variable()
+    892          {
+    893            uint8 i=0,ch=0;
+    894            float temp=0;
+    895            uart_putchar(UART0,0xad);
+    896            uart_putchar(UART0,0xad);
+    897            uart_putchar(UART0,0xad);
+    898           for(i=0;i<20;i++)
+    899            {
+    900              temp=*Variable[i];
+    901              if(temp<0.00001&&temp>-0.00001)
+    902                temp=0;
+    903              else temp=temp+0.000001;
+    904              ch=BYTE0(temp);
+    905               uart_putchar(UART0,ch);
+    906              ch=BYTE1(temp);
+    907               uart_putchar(UART0,ch);
+    908              ch=BYTE2(temp);
+    909               uart_putchar(UART0,ch);
+    910              ch=BYTE3(temp);
+    911               uart_putchar(UART0,ch);
+    912            }
+    913              uart_putchar(UART0,0x0d);
+    914          }
+    915          void Send_CCD(void)
+    916          {
+    917            uint8 i;
+    918            uart_putchar(UART0,0xab);
+    919            uart_putchar(UART0,0xab);
+    920            uart_putchar(UART0,0xab);
+    921            for(i=0;i<150;i++)              //CCD
+    922            {
+    923             uart_putchar(UART0,CCD_Draw_Buff[i]); 
+    924            }
+    925             uart_putchar(UART0,0x0b);
+    926          }
+    927          void Send_SD()
+    928          {
+    929           int i;
+    930           SD_ReadDisk(SDHC_Buff,Block_Index+Zone_Size);
+    931           for(i=0;i<512;i++) uart_putchar(UART0,SDHC_Buff[i]);  
+    932          }
+
+Errors: 17
+Warnings: 17

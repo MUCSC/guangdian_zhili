@@ -1,0 +1,345 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V7.40.2.8542/W32 for ARM        13/Apr/2017  20:44:56
+# Copyright 1999-2015 IAR Systems AB.
+#
+#    Cpu mode     =  thumb
+#    Endian       =  little
+#    Source file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SD_Card.c
+#    Command line =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SD_Card.c
+#        -D LPLD_K60 -D USE_K60DZ10 -lCN
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -lB
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\
+#        -o
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\
+#        --no_cse --no_unroll --no_inline --no_code_motion --no_tbaa
+#        --no_clustering --no_scheduling --debug --endian=little
+#        --cpu=Cortex-M4 -e --fpu=None --dlib_config "E:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\INC\c\DLib_Config_Normal.h" -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\app\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\CPU\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\HW\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\DEV\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\LPLD\FUNC\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Ports\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\uCOS-II\Source\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\FatFs\option\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\common\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\driver\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\descriptor\
+#        -I
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\..\..\..\lib\USB\class\
+#        -Ol -I "E:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        7.2\arm\CMSIS\Include\" -D ARM_MATH_CM4
+#    List file    =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\List\SD_Card.lst
+#    Object file  =  
+#        C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\iar\FLASH\Obj\SD_Card.o
+#
+###############################################################################
+
+C:\Users\Chron\Desktop\智能车\私家车_葛峰\代码\mycar\project\mycar\app\SD_Card.c
+      1          #include "include.h"
+      2          
+      3          #define Variable_ADDR   2
+      4          #define Para_ADDR   102
+      5          #define CCD_ADDR   212
+      6          #define  SD_CS PTE4_OUT
+      7          uint8   SDHC_Buff[512]; 
+      8          uint8   SD_OK=0;
+      9          uint8   SaveData=0;
+     10          uint16  Block_Index=0;
+     11          uint8   Zone_Index=0;
+     12          uint8   Zone_Read_Index=0;
+     13          uint8   Block_Index_Receiving;
+     14          uint8   SD_Type = 0;
+     15          void   SD_DisSelect();
+     16          uint8   SD_GetResponse(uint8 Response);
+     17          uint8   SD_RecvData(uint8*buf,uint16 len);
+     18          uint8   SD_Select();
+     19          void   SD_SPI_HighSpeed();
+     20          void   SD_SPI_LowSpeed();
+     21          uint8   SD_WaitReady();
+     22          uint8  SD_WriteDisk(uint8*buf,uint32 sector);
+     23          uint8  SPI_SendReceiveData(uint8 TxData);
+     24          
+     25          
+     26          //用来在第一个页面存储一共有多少页有用数据，车子自记录以来跑了多少米
+     27          void  Write_Information()
+     28          {
+     29            SDHC_Buff[0]=BYTE0(Block_Index);  
+     30            SDHC_Buff[1]=BYTE1(Block_Index);
+     31            SDHC_Buff[2]=BYTE0(Distance);
+     32            SDHC_Buff[3]=BYTE1(Distance);
+     33            SDHC_Buff[4]=BYTE2(Distance);
+     34            SDHC_Buff[5]=BYTE3(Distance);
+     35            SD_WriteDisk(SDHC_Buff,Zone_Size);//第一个扇区用来记录重要的信息
+     36            Block_Index=1;                       //其他数据只能从第二个扇区写
+     37          }
+     38          //用来存储运行数据
+     39          void Record()
+     40          {
+     41          //用来更新缓存，每10ms执行一次
+     42            float temp;
+     43            uint8 i;
+     44            SDHC_Buff[0]=BYTE0(Block_Index);         
+     45            SDHC_Buff[1]=BYTE1(Block_Index); 
+     46             for(i=0;i<20;i++)
+     47            {
+     48              temp=*Variable[i]+0.0000005;
+     49              SDHC_Buff[Variable_ADDR+i*4]=BYTE0(temp);          
+     50              SDHC_Buff[Variable_ADDR+i*4+1]=BYTE1(temp);
+     51              SDHC_Buff[Variable_ADDR+i*4+2]=BYTE2(temp);
+     52              SDHC_Buff[Variable_ADDR+i*4+3]=BYTE3(temp);
+     53            }
+     54            
+     55            for(i=0;i<12;i++)  
+     56            {
+     57              temp=*Control_Para[i]+0.0000005;
+     58              SDHC_Buff[Para_ADDR+i*4]=BYTE0(temp);          
+     59              SDHC_Buff[Para_ADDR+i*4+1]=BYTE1(temp);
+     60              SDHC_Buff[Para_ADDR+i*4+2]=BYTE2(temp);
+     61              SDHC_Buff[Para_ADDR+i*4+3]=BYTE3(temp);
+     62            } 
+     63             for(i=0;i<150;i++)
+     64             {
+     65               SDHC_Buff[CCD_ADDR+i]=CCD_Draw_Buff[i];
+     66             }
+     67             SD_WriteDisk(SDHC_Buff,Zone_Size+Block_Index);
+     68             LED_BLUE_TURN;                          //LED灯指示
+     69             Block_Index++;
+     70          }
+     71          
+     72          void SD_SPI_LowSpeed()
+     73          {
+     74            spi_set_baud (SPI1,200*1000);	
+     75          }
+     76          
+     77          void SD_SPI_HighSpeed()
+     78          {
+     79            spi_set_baud (SPI1,10000*1000);	
+     80          }
+     81          
+     82          void SD_DisSelect()
+     83          {
+     84            SD_CS=1; //取消片选
+     85            SPI_SendReceiveData(0xff);   //提供额外的8个时钟
+     86          }
+     87          uint8 SD_WaitReady()
+     88          {
+     89            uint32 t = 0;
+     90            do
+     91            {
+     92              if(SPI_SendReceiveData(0xff) == 0xff) return 0;
+     93              t++;
+     94            }while(t < 0xffffff);
+     95            return 1;
+     96          }
+     97          
+     98          uint8 SD_GetResponse(uint8 Response)
+     99          {
+    100            uint16 Count=0xFFFF;//等待次数	   						  
+    101            while((SPI_SendReceiveData(0XFF)!=Response)&&Count) Count--;//等待得到准确的回应  	  
+    102            if(Count==0)return MSD_RESPONSE_FAILURE;//得到回应失败   
+    103            else return MSD_RESPONSE_NO_ERROR;//正确回应	
+    104          }
+    105          //从sd卡读取一个数据包的内容
+    106          //buf:数据缓存区
+    107          //len:要读取的数据长度.
+    108          //返回值:0,成功;其他,失败;	
+    109          uint8 SD_RecvData(uint8*buf,uint16 len)
+    110          {			  	  
+    111             if(SD_GetResponse(0xFE)) return 1;//等待SD卡发回数据起始令牌0xFE
+    112              while(len--)//开始接收数据
+    113              {
+    114                *buf=SPI_SendReceiveData(0xFF);
+    115                 buf++;
+    116              }
+    117              //下面是2个伪CRC（dummy CRC）
+    118              SPI_SendReceiveData(0xFF);
+    119              SPI_SendReceiveData(0xFF);									  					    
+    120              return 0;//读取成功
+    121          }
+    122          //向SD卡发送一个命令
+    123          //输入: uint8 cmd   命令 
+    124          //      u32 arg  命令参数
+    125          //      uint8 crc   crc校验值	   
+    126          //返回值:SD卡返回的响应															  
+    127          uint8 SD_SendCmd(uint8 cmd, uint32 arg, uint8 crc) 
+    128          {
+    129              uint8 r1;	
+    130              uint8 Retry=0;
+    131              SD_DisSelect();//取消片选
+    132              SD_CS=0; //片选
+    133              SPI_SendReceiveData(cmd | 0x40);//分别写入命令
+    134              SPI_SendReceiveData(arg >> 24);
+    135              SPI_SendReceiveData(arg >> 16);
+    136              SPI_SendReceiveData(arg >> 8);
+    137              SPI_SendReceiveData(arg);	  
+    138              SPI_SendReceiveData(crc); 
+    139              Retry=0X1F;
+    140              do
+    141              {
+    142               r1=SPI_SendReceiveData(0xFF);
+    143              }
+    144              while((r1&0X80)&&Retry--);
+    145              //返回状态值;
+    146              return r1;
+    147          }
+    148          uint8 SD_Initialize(void)
+    149          {
+    150              uint8 r1;           //存放SD卡的返回值
+    151              uint16 retry;       //用来进行超时计数
+    152              uint16 i;
+    153              uint8 buff[4];
+    154              uint8 success=0;
+    155              SD_SPI_LowSpeed();	//设置到低速模式 
+    156              SD_DisSelect();
+    157              for(i=0;i<10;i++)SPI_SendReceiveData(0XFF);//发送最少74个脉冲
+    158              retry=20;
+    159              do
+    160              {
+    161                 r1=SD_SendCmd(CMD0,0,0x95);//进入IDLE状态
+    162                 SD_DisSelect();            //取消片选
+    163              }
+    164              while((r1!=0X01)&&retry--);
+    165              SD_Type=0;//默认无卡
+    166              if(r1==0X01)
+    167              {
+    168                if(SD_SendCmd(CMD8,0x1AA,0x87)==1)//SD V2.0
+    169                {
+    170                  retry=0XFFFE;
+    171                  do
+    172                  {
+    173                      SD_SendCmd(CMD55,0,1);	       //发送CMD55
+    174                      r1=SD_SendCmd(CMD41,0x40000000,1);//发送CMD41
+    175                  }while(r1&&retry--);
+    176                  if(r1==0)success=1;  //初始化成功了
+    177                  r1 = SD_SendCmd(CMD58, 0, 1);
+    178                  if(r1==0)
+    179                  {
+    180                    buff[0] =SPI_SendReceiveData(0xFF);
+    181                    buff[1] =SPI_SendReceiveData(0xFF);
+    182                    buff[2] =SPI_SendReceiveData(0xFF);
+    183                    buff[3] =SPI_SendReceiveData(0xFF); 
+    184                    SD_DisSelect();//取消片选
+    185                    if(buff[0]&0x40)SD_Type = SD_TYPE_V2HC; //检查CCS
+    186                    else SD_Type = SD_TYPE_V2;
+    187                  } 
+    188                }
+    189              }
+    190              SD_DisSelect();
+    191              SD_SPI_HighSpeed();//高速	
+    192              return success;//其他错误
+    193          }
+    194          //读SD卡
+    195          //buf:数据缓存区
+    196          //sector:扇区
+    197          //cnt:扇区数
+    198          //返回值:0,ok;其他,失败.
+    199          uint8 SD_ReadDisk(uint8*buf,uint32 sector)
+    200          {
+    201            uint8 r1;
+    202            if(SD_Type!=SD_TYPE_V2HC)sector<<= 9;//转换为字节地址
+    203            r1=SD_SendCmd(CMD17,sector,0X01);//读命令
+    204            if(r1==0)//指令发送成功
+    205            {
+    206              r1=SD_RecvData(buf,512);//接收512个字节	   
+    207            }
+    208            SD_DisSelect();//取消片选
+    209            return r1;
+    210          }
+    211          //写SD卡
+    212          //buf:数据缓存区
+    213          //sector:起始扇区
+    214          //cnt:扇区数
+    215          //返回值:0,ok;其他,失败.
+    216          uint8 SD_WriteDisk(uint8*buf,uint32 sector)
+    217          {
+    218            uint8 r1;
+    219            uint16 t;
+    220            uint16 retry;
+    221            if(SD_Type!=SD_TYPE_V2HC)sector <<= 9;//转换为字节地址
+    222            if(SD_Type!=SD_TYPE_MMC)
+    223            {
+    224              SD_SendCmd(CMD55,0,0X01);	
+    225              SD_SendCmd(CMD23,1,0X01);//发送指令	
+    226            }
+    227            r1=SD_SendCmd(CMD24,sector,0X01);//单块读命令
+    228            if(r1==0)
+    229            {
+    230              
+    231              SD_CS=0;
+    232              SPI_SendReceiveData(0XFF);
+    233              SPI_SendReceiveData(0XFF);
+    234              SPI_SendReceiveData(0XFF);
+    235              
+    236              SPI_SendReceiveData(0XFE);//开始写
+    237          
+    238              for(t=0;t<512;t++)SPI_SendReceiveData(buf[t]);//提高速度,减少函数传参时间
+    239              
+    240              SPI_SendReceiveData(0xFF);//忽略crc
+    241              SPI_SendReceiveData(0xFF);
+    242              t=SPI_SendReceiveData(0xFF);//接收响应
+    243              if((t&0x1F)!=0x05)return 2;//响应错误	
+    244              
+    245             }						 	 
+    246              retry = 0;
+    247              while(!SPI_SendReceiveData(0xff))
+    248              {
+    249                retry++;
+    250                if(retry>0xfffe) //如果长时间写入没有完成，报错退出
+    251                {
+    252                    SD_CS=1;
+    253                    return 1; //写入超时返回1
+    254                }
+    255              }
+    256            SD_DisSelect();//取消片选
+    257            return 1;//
+    258          }
+    259          uint8 SPI_SendReceiveData(uint8 TxData)
+    260          {
+    261            uint16 retry=0;
+    262            SPI_MemMapPtr spi_ptr=SPI1_BASE_PTR;
+    263            
+    264            while(!(SPI_S_REG(spi_ptr)&SPI_S_SPTEF_MASK)) //发送寄存器非空等待
+    265            {
+    266              retry++;
+    267              if(retry>200)return 0;
+    268            }
+    269            SPI_DL_REG(SPI1_BASE_PTR)=TxData;                     //直接读取数据来清空接收缓冲区
+    270          
+    271            retry=0;
+    272           
+    273            while(!(SPI_S_REG(spi_ptr)& SPI_S_SPRF_MASK))  //检测接收缓冲区非空
+    274            {
+    275              retry++;
+    276              if(retry>2000)return 0;
+    277            } 	                                    //直接读取数据来清空接收缓冲区
+    278           return   SPI_DL_REG(SPI1_BASE_PTR);		
+    279          }
+    280          
+    281                
+
+Errors: 10
+Warnings: 6
